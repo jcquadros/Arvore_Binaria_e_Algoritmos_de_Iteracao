@@ -15,6 +15,7 @@ typedef struct Node{
 
 typedef struct BinaryTree BinaryTree;
 
+
 BinaryTree* binary_tree_construct(cmp_func cmp_fn);
 void binary_tree_add(BinaryTree* tree, key_type key, value_type value);
 value_type binary_tree_get(BinaryTree* tree, key_type key);
@@ -25,4 +26,12 @@ Node *binary_tree_remove_min(BinaryTree* tree);
 Node *binary_tree_remove_max(BinaryTree* tree);
 void binary_tree_destroy(BinaryTree* tree);
 
+
+// Iterator
+typedef struct Iterator Iterator;
+
+Iterator* iterator_inorder_traversal_recursive_construct(BinaryTree* tree);
+Node* iterator_inorder_traversal_recursive_next(Iterator* iterator);
+int iterator_is_over(Iterator* iterator);
+void iterator_destroy(Iterator* iterator);
 #endif

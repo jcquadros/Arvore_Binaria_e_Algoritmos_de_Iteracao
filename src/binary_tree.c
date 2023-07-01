@@ -183,3 +183,79 @@ void binary_tree_destroy(BinaryTree *tree) {
     node_destroy(tree->root);
     free(tree);
 }
+
+
+// Iterators
+struct Iterator {
+    Node *node;
+};
+
+Iterator* iterator_inorder_traversal_recursive_construct(BinaryTree* tree){
+    Iterator *iterator = malloc(sizeof(Iterator));
+    iterator->node = _get_min(tree->root);
+    return iterator;
+}
+
+Node *_iterator_inorder_traversal_recursive_parent(Node *node){
+    if(node->parent == NULL){
+        return NULL;
+    }
+    if(node->parent->left == node){
+        return node->parent;
+    }
+    return iterator_inorder_traversal_recursive_parent(node->parent);
+}
+
+Node* iterator_inorder_traversal_recursive_next(Iterator* iterator){
+    if(iterator->node == NULL){
+        return NULL;
+    }
+    // Encontra o nó mais à esquerda na subárvore direita ou retorna o pai
+    if(iterator->node->right != NULL){
+        iterator->node = _get_min(iterator->node->right);
+    }else{
+        // Encontra o primeiro pai que não foi visitado de forma recursiva
+        iterator->node = _iterator_inorder_traversal_recursive_parent(iterator->node);
+    }
+
+    return iterator->node;
+}
+
+Iterator* iterator_inorder_traversal_iterative_construct(BinaryTree* tree){
+    Iterator *iterator = malloc(sizeof(Iterator));
+    iterator->node = tree->root;
+    if(iterator->node == NULL){
+        return iterator;
+    }
+    while(iterator->node->left != NULL){
+        iterator->node = iterator->node->left;
+    }
+    return iterator;
+}
+
+Node *iterator_inorder_traversal_iterative_next(Iterator *iterator){
+    if(iterator->node == NULL){
+        return NULL;
+    }
+    Node *node = iterator->node;
+    if(iterator->node->right != NULL){
+        iterator->node = iterator->node->right;
+        while(iterator->node->left != NULL){
+            iterator->node = iterator->node->left;
+        }
+    }else{
+        while(iterator->node->parent != NULL && iterator->node->parent->right == iterator->node){
+            iterator->node = iterator->node->parent;
+        }
+        iterator->node = iterator->node->parent;
+    }
+    return node;   
+}
+
+void iterator_destroy(Iterator* iterator){
+    free(iterator);
+}
+
+int iterator_is_over(Iterator* iterator){
+    return iterator->node == NULL;
+}
