@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "queue.h"
+#include "stack.h"
+
 struct BinaryTree{
     Node *root;
     cmp_func cmp_fn;
@@ -190,72 +193,140 @@ struct Iterator {
     Node *node;
 };
 
-Iterator* iterator_inorder_traversal_recursive_construct(BinaryTree* tree){
-    Iterator *iterator = malloc(sizeof(Iterator));
-    iterator->node = _get_min(tree->root);
-    return iterator;
+void _inorder_traversal_recursive(Node *node, Vector *vector){
+    if(node == NULL){
+        return;
+    }
+    _inorder_traversal_recursive(node->left, vector);
+    vector_push_back(vector, node);
+    _inorder_traversal_recursive(node->right, vector);
 }
 
-Node *_iterator_inorder_traversal_recursive_parent(Node *node){
-    if(node->parent == NULL){
-        return NULL;
+void iterator_inorder_traversal_recursive(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return vector;
     }
-    if(node->parent->left == node){
-        return node->parent;
-    }
-    return iterator_inorder_traversal_recursive_parent(node->parent);
+    _inorder_traversal_recursive(tree->root, vector);
+
 }
-
-Node* iterator_inorder_traversal_recursive_next(Iterator* iterator){
-    if(iterator->node == NULL){
-        return NULL;
-    }
-    // Encontra o nó mais à esquerda na subárvore direita ou retorna o pai
-    if(iterator->node->right != NULL){
-        iterator->node = _get_min(iterator->node->right);
-    }else{
-        // Encontra o primeiro pai que não foi visitado de forma recursiva
-        iterator->node = _iterator_inorder_traversal_recursive_parent(iterator->node);
+void iterator_inorder_traversal_iterative(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return;
     }
 
-    return iterator->node;
-}
-
-Iterator* iterator_inorder_traversal_iterative_construct(BinaryTree* tree){
-    Iterator *iterator = malloc(sizeof(Iterator));
-    iterator->node = tree->root;
-    if(iterator->node == NULL){
-        return iterator;
-    }
-    while(iterator->node->left != NULL){
-        iterator->node = iterator->node->left;
-    }
-    return iterator;
-}
-
-Node *iterator_inorder_traversal_iterative_next(Iterator *iterator){
-    if(iterator->node == NULL){
-        return NULL;
-    }
-    Node *node = iterator->node;
-    if(iterator->node->right != NULL){
-        iterator->node = iterator->node->right;
-        while(iterator->node->left != NULL){
-            iterator->node = iterator->node->left;
+    Stack *stack = stack_construct();
+    Node *node = tree->root;
+    while (!stack_empty(stack) || node != NULL){
+        if(node != NULL){
+            stack_push(stack, node);
+            node = node->left;
+        }else{
+            node = stack_pop(stack);
+            vector_push_back(vector, node);
+            node = node->right;
         }
-    }else{
-        while(iterator->node->parent != NULL && iterator->node->parent->right == iterator->node){
-            iterator->node = iterator->node->parent;
-        }
-        iterator->node = iterator->node->parent;
     }
-    return node;   
+
+    stack_destroy(stack);
+}
+
+void _preorder_traversal_recursive(Node *node, Vector *vector){
+    if(node == NULL){
+        return;
+    }
+    vector_push_back(vector, node);
+    _preorder_traversal_recursive(node->left, vector);
+    _preorder_traversal_recursive(node->right, vector);
+}
+
+void iterator_preorder_traversal_recursive(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return vector;
+    }
+    _preorder_traversal_recursive(tree->root, vector);
+}
+
+void iterator_preorder_traversal_iterative(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return;
+    }
+    Stack *stack = stack_construct();
+    stack_push(stack, tree->root);
+    while(!stack_empty(stack)){
+        Node *node = stack_pop(stack);
+        vector_push_back(vector, node);
+        if(node->right != NULL){
+            stack_push(stack, node->right);
+        }
+        if(node->left != NULL){
+            stack_push(stack, node->left);
+        }
+    }
+    stack_destroy(stack);
+}
+
+void _postorder_traversal_recursive(Node *node, Vector *vector){
+    if(node == NULL){
+        return;
+    }
+    _postorder_traversal_recursive(node->left, vector);
+    _postorder_traversal_recursive(node->right, vector);
+    vector_push_back(vector, node);
+}
+
+void iterator_postorder_traversal_recursive(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return vector;
+    }
+    _postorder_traversal_recursive(tree->root, vector);
+}
+
+void iterator_postorder_traversal_iterative(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return;
+    }
+    Stack *stack = stack_construct();
+    Stack *stack_rev = stack_construct();
+    while(!stack_empty(stack)){
+        Node *node = stack_pop(stack);
+        if(node->left != NULL){
+            stack_push(stack, node->left);
+        }
+        if(node->right != NULL){
+            stack_push(stack, node->right);
+        }
+        stack_push(stack_rev, node);
+    }
+
+    while(!stack_empty(stack_rev)){
+        Node *node = stack_pop(stack_rev);
+        vector_push_back(vector, node);
+    }
+
+    stack_destroy(stack);
+    stack_destroy(stack_rev);
+}
+
+void iterator_levelorder_traversal(BinaryTree* tree, Vector *vector){
+    if(tree->root == NULL){
+        return;
+    }
+    Queue *queue = queue_construct();
+    queue_push(queue, tree->root);
+    while(!queue_empty(queue)){
+        Node *node = queue_pop(queue);
+        vector_push_back(vector, node);
+        if(node->left != NULL){
+            queue_push(queue, node->left);
+        }
+        if(node->right != NULL){
+            queue_push(queue, node->right);
+        }
+    }
+    queue_destroy(queue);
 }
 
 void iterator_destroy(Iterator* iterator){
     free(iterator);
 }
 
-int iterator_is_over(Iterator* iterator){
-    return iterator->node == NULL;
-}

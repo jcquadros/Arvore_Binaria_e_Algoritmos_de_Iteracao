@@ -1,6 +1,6 @@
 #ifndef _BINARY_TREE_H_
 #define _BINARY_TREE_H_
-
+#include "vector.h"
 typedef void* key_type;
 typedef void* value_type;
 typedef int (*cmp_func)(key_type, key_type);
@@ -30,8 +30,13 @@ void binary_tree_destroy(BinaryTree* tree);
 // Iterator
 typedef struct Iterator Iterator;
 
-Iterator* iterator_inorder_traversal_recursive_construct(BinaryTree* tree);
-Node* iterator_inorder_traversal_recursive_next(Iterator* iterator);
-int iterator_is_over(Iterator* iterator);
+void iterator_inorder_traversal_recursive(BinaryTree* tree, Vector *vector);
+void iterator_inorder_traversal_iterative(BinaryTree* tree, Vector *vector);
+void iterator_preorder_traversal_recursive(BinaryTree* tree, Vector *vector);
+void iterator_preorder_traversal_iterative(BinaryTree* tree, Vector *vector);
+void iterator_postorder_traversal_recursive(BinaryTree* tree, Vector *vector);
+void iterator_postorder_traversal_iterative(BinaryTree* tree, Vector *vector);
+void iterator_levelorder_traversal(BinaryTree* tree, Vector *vector);
+
 void iterator_destroy(Iterator* iterator);
 #endif
