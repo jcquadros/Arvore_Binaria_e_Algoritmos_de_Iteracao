@@ -4,7 +4,8 @@ typedef struct Vector Vector;
 typedef void* data_vector;
 typedef void (*destroy_vector)(data_vector);
 
-Vector* vector_create(destroy_vector destroy);
+Vector* vector_create();
+data_vector vector_get(Vector* vector, int index);
 void vector_push_back(Vector* vector, data_vector data);
 data_vector vector_pop_back(Vector* vector);
 int vector_size(Vector* vector);

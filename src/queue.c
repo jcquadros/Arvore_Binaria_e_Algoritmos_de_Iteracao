@@ -4,7 +4,7 @@
 #include "forward_list.h"
 
 struct Queue{
-    Deque *data;
+    ForwardList *data;
 };
 
 Queue *queue_construct(){
@@ -26,6 +26,6 @@ void *queue_pop(Queue *queue){
 }
 
 void queue_destroy(Queue *queue){
-    forwaed_list_destroy(queue->data);
+    forward_list_destroy(queue->data);
     free(queue);
 }

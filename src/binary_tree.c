@@ -12,7 +12,7 @@ typedef struct Node
     struct Node *left;
     struct Node *right;
     struct Node *parent;
-}Node;
+} Node;
 
 struct BinaryTree
 {
@@ -50,7 +50,7 @@ void _pair_destroy(Pair *pair, destroy_key_func destroy_key_fn, destroy_value_fu
 }
 
 // Create a new node
-Node *node_construct(Node *parent, Node *left, Node *right, key_type key, value_type value)
+Node *_node_construct(Node *parent, Node *left, Node *right, key_type key, value_type value)
 {
     Node *node = malloc(sizeof(Node));
     node->left = left;
@@ -62,14 +62,14 @@ Node *node_construct(Node *parent, Node *left, Node *right, key_type key, value_
 }
 
 // Destroy a node
-void node_destroy(Node *node, destroy_key_func destroy_key_fn, destroy_value_func destroy_value_fn)
+void _node_destroy(Node *node, destroy_key_func destroy_key_fn, destroy_value_func destroy_value_fn)
 {
     if (node == NULL)
     {
         return;
     }
-    node_destroy(node->left, destroy_key_fn, destroy_value_fn);
-    node_destroy(node->right, destroy_key_fn, destroy_value_fn);
+    _node_destroy(node->left, destroy_key_fn, destroy_value_fn);
+    _node_destroy(node->right, destroy_key_fn, destroy_value_fn);
 
     if (destroy_key_fn != NULL)
     {
@@ -99,7 +99,7 @@ Node *_add_recursive(Node *node, Node *parent, key_type key, value_type value, c
     if (node == NULL)
     {
         // printf("Construindo um novo nó para a chave %s\n", (char*)key);
-        return node_construct(parent, NULL, NULL, key, value);
+        return _node_construct(parent, NULL, NULL, key, value);
     }
     if (cmp_fn(key, node->key) < 0)
     {
@@ -144,6 +144,7 @@ Pair *binary_tree_get(BinaryTree *tree, key_type key)
 {
     // recursive
     Node *node = _get_recursive(tree->root, key, tree->cmp_fn);
+
     if (node == NULL)
     {
         return NULL;
@@ -169,11 +170,12 @@ Pair *binary_tree_min(BinaryTree *tree)
         return NULL;
     }
     Node *node = _get_min(tree->root);
-    
-    if(node == NULL) {
+
+    if (node == NULL)
+    {
         return NULL;
     }
-    
+
     Pair *p = _pair_construct(node->key, node->value);
     return p;
 }
@@ -193,8 +195,9 @@ Pair *binary_tree_max(BinaryTree *tree)
     {
         return NULL;
     }
-    Node *node =_get_max(tree->root);
-    if(node == NULL) {
+    Node *node = _get_max(tree->root);
+    if (node == NULL)
+    {
         return NULL;
     }
     Pair *p = _pair_construct(node->key, node->value);
@@ -262,40 +265,46 @@ Pair *binary_tree_remove(BinaryTree *tree, key_type key)
         return NULL;
     }
     Node *removed = _delete_recursive(tree, node);
-    if(removed == NULL) {
+    if (removed == NULL)
+    {
         return NULL;
     }
     Pair *p = _pair_construct(removed->key, removed->value);
+    free(removed);
     return p;
 }
 
 Pair *binary_tree_pop_min(BinaryTree *tree)
 {
-    Node *node = binary_tree_min(tree);
+    Node *node = _get_min(tree->root);
     if (node == NULL)
     {
         return NULL;
     }
     node = _delete_recursive(tree, node);
-    if(node == NULL) {
+    if (node == NULL)
+    {
         return NULL;
     }
     Pair *p = _pair_construct(node->key, node->value);
+    free(node);
     return p;
 }
 
 Pair *binary_tree_pop_max(BinaryTree *tree)
 {
-    Node *node = binary_tree_max(tree);
+    Node *node = _get_max(tree->root);
     if (node == NULL)
     {
         return NULL;
     }
     node = _delete_recursive(tree, node);
-    if(node == NULL) {
+    if (node == NULL)
+    {
         return NULL;
     }
     Pair *p = _pair_construct(node->key, node->value);
+    free(node);
     return p;
 }
 
@@ -306,10 +315,9 @@ void binary_tree_destroy(BinaryTree *tree)
     {
         return;
     }
-    node_destroy(tree->root);
+    _node_destroy(tree->root, tree->destroy_key_fn, tree->destroy_value_fn);
     free(tree);
 }
-
 
 void _inorder_traversal_recursive(Node *node, Vector *vector)
 {
@@ -318,29 +326,22 @@ void _inorder_traversal_recursive(Node *node, Vector *vector)
         return;
     }
     _inorder_traversal_recursive(node->left, vector);
-    vector_push_back(vector, node);
+    vector_push_back(vector, _pair_construct(node->key, node->value));
     _inorder_traversal_recursive(node->right, vector);
 }
 
-Vector* iterator_inorder_traversal_recursive(BinaryTree *tree)
+Vector *inorder_traversal_recursive(BinaryTree *tree)
 {
-    Vector *vector = vector_construct();
-    if (tree->root == NULL)
-    {
-        return vector;
-    }
+    Vector *vector = vector_create();
     _inorder_traversal_recursive(tree->root, vector);
+    return vector;
 }
-Vector* iterator_inorder_traversal_iterative(BinaryTree *tree)
+Vector *inorder_traversal_iterative(BinaryTree *tree)
 {
-    Vector *vector = vector_construct();
-    if (tree->root == NULL)
-    {
-        return;
-    }
-
+    Vector *vector = vector_create();
     Stack *stack = stack_construct();
     Node *node = tree->root;
+
     while (!stack_empty(stack) || node != NULL)
     {
         if (node != NULL)
@@ -351,12 +352,13 @@ Vector* iterator_inorder_traversal_iterative(BinaryTree *tree)
         else
         {
             node = stack_pop(stack);
-            vector_push_back(vector, node);
+            vector_push_back(vector, _pair_construct(node->key, node->value));
             node = node->right;
         }
     }
 
     stack_destroy(stack);
+    return vector;
 }
 
 void _preorder_traversal_recursive(Node *node, Vector *vector)
@@ -365,34 +367,33 @@ void _preorder_traversal_recursive(Node *node, Vector *vector)
     {
         return;
     }
-    vector_push_back(vector, node);
+    vector_push_back(vector, _pair_construct(node->key, node->value));
     _preorder_traversal_recursive(node->left, vector);
     _preorder_traversal_recursive(node->right, vector);
 }
 
-Vector * iterator_preorder_traversal_recursive(BinaryTree *tree)
+Vector *preorder_traversal_recursive(BinaryTree *tree)
 {
-    Vector *vector = vector_construct();
-    if (tree->root == NULL)
-    {
-        return vector;
-    }
+    Vector *vector = vector_create();
     _preorder_traversal_recursive(tree->root, vector);
+    return vector;
 }
 
-Vector *iterator_preorder_traversal_iterative(BinaryTree *tree)
+Vector *preorder_traversal_iterative(BinaryTree *tree)
 {
-    Vector *vector = vector_construct();
     if (tree->root == NULL)
     {
-        return;
+        return NULL;
     }
+
+    Vector *vector = vector_create();
     Stack *stack = stack_construct();
     stack_push(stack, tree->root);
+
     while (!stack_empty(stack))
     {
         Node *node = stack_pop(stack);
-        vector_push_back(vector, node);
+        vector_push_back(vector, _pair_construct(node->key, node->value));
         if (node->right != NULL)
         {
             stack_push(stack, node->right);
@@ -403,6 +404,7 @@ Vector *iterator_preorder_traversal_iterative(BinaryTree *tree)
         }
     }
     stack_destroy(stack);
+    return vector;
 }
 
 void _postorder_traversal_recursive(Node *node, Vector *vector)
@@ -413,30 +415,30 @@ void _postorder_traversal_recursive(Node *node, Vector *vector)
     }
     _postorder_traversal_recursive(node->left, vector);
     _postorder_traversal_recursive(node->right, vector);
-    vector_push_back(vector, node);
+    vector_push_back(vector, _pair_construct(node->key, node->value));
 }
 
-Vector * iterator_postorder_traversal_recursive(BinaryTree *tree)
+Vector *postorder_traversal_recursive(BinaryTree *tree)
 {
-    if (tree->root == NULL)
-    {
-        return vector;
-    }
+    Vector *vector = vector_create();
     _postorder_traversal_recursive(tree->root, vector);
+    return vector;
 }
 
-Vector* iterator_postorder_traversal_iterative(BinaryTree *tree)
+Vector *postorder_traversal_iterative(BinaryTree *tree)
 {
-    Vector *vector = vector_construct();
     if (tree->root == NULL)
     {
-        return;
+        return NULL;
     }
+    Vector *vector = vector_create();
     Stack *stack = stack_construct();
     Stack *stack_rev = stack_construct();
+    stack_push(stack, tree->root);
     while (!stack_empty(stack))
     {
         Node *node = stack_pop(stack);
+
         if (node->left != NULL)
         {
             stack_push(stack, node->left);
@@ -445,32 +447,34 @@ Vector* iterator_postorder_traversal_iterative(BinaryTree *tree)
         {
             stack_push(stack, node->right);
         }
+
         stack_push(stack_rev, node);
     }
 
     while (!stack_empty(stack_rev))
     {
         Node *node = stack_pop(stack_rev);
-        vector_push_back(vector, node);
+        vector_push_back(vector, _pair_construct(node->key, node->value));
     }
 
     stack_destroy(stack);
     stack_destroy(stack_rev);
+    return vector;
 }
 
-Vector *iterator_levelorder_traversal(BinaryTree *tree)
+Vector *levelorder_traversal(BinaryTree *tree)
 {
     if (tree->root == NULL)
     {
-        return;
+        return NULL;
     }
-    Vector *vector = vector_construct();
+    Vector *vector = vector_create();
     Queue *queue = queue_construct();
     queue_push(queue, tree->root);
     while (!queue_empty(queue))
     {
         Node *node = queue_pop(queue);
-        vector_push_back(vector, node);
+        vector_push_back(vector, _pair_construct(node->key, node->value));
         if (node->left != NULL)
         {
             queue_push(queue, node->left);

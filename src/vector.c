@@ -7,18 +7,16 @@
 struct Vector
 {
     data_vector *data;
-    destroy_vector destroy_fn;
     int size;
     int capacity;
 };
 
-Vector *vector_create(destroy_vector destroy_fn)
+Vector *vector_create()
 {
     Vector *vector = (Vector *)calloc(1, sizeof(Vector));
     vector->data = (data_vector *)calloc(INITIAL_CAPACITY, sizeof(data_vector));
     vector->size = 0;
     vector->capacity = INITIAL_CAPACITY;
-    vector->destroy_fn = destroy_fn;
     return vector;
 }
 
@@ -54,15 +52,19 @@ int vector_is_empty(Vector *vector)
     return vector->size == 0;
 }
 
+data_vector vector_get(Vector *vector, int index)
+{
+    if (index < 0 || index >= vector->size)
+    {
+        printf("vector_get: Index out of bounds\n");
+        exit(1);
+    }
+    return vector->data[index];
+}
+
 void vector_destroy(Vector *vector)
 {
-    if (vector->destroy_fn != NULL)
-    {
-        while (!vector_is_empty(vector))
-        {
-            vector->destroy_fn(vector_pop_back(vector));
-        }
-    }
+    // assume que o vetor não contém ponteiros para memória alocada dinamicamente
     free(vector->data);
     free(vector);
 }

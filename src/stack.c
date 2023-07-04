@@ -4,7 +4,7 @@
 #include "forward_list.h"
 
 struct Stack{
-    Deque *data;
+    ForwardList *data;
 };
 
 Stack *stack_construct(){
