@@ -94,22 +94,35 @@ BinaryTree *binary_tree_construct(cmp_func cmp_fn, destroy_key_func destroy_key_
     return tree;
 }
 
-Node *_add_recursive(Node *node, Node *parent, key_type key, value_type value, cmp_func cmp_fn)
+Node *_add_recursive(BinaryTree* tree, Node *node, Node *parent, key_type key, value_type value)
 {
     if (node == NULL)
     {
         // printf("Construindo um novo nó para a chave %s\n", (char*)key);
         return _node_construct(parent, NULL, NULL, key, value);
     }
-    if (cmp_fn(key, node->key) < 0)
+    int cmp = tree->cmp_fn(key, node->key);
+    if (cmp < 0)
     {
         // printf("Inserindo %s na esquerda de %s\n", (char*)key, (char*)node->key);
-        node->left = _add_recursive(node->left, node, key, value, cmp_fn);
+        node->left = _add_recursive(tree, node->left, node, key, value);
     }
-    else
+    else if(cmp > 0)
     {
         // printf("Inserindo %s na direita de %s\n", (char*)key, (char*)node->key);
-        node->right = _add_recursive(node->right, node, key, value, cmp_fn);
+        node->right = _add_recursive(tree, node->right, node, key, value);
+    }else{
+        // printf("Atualizando %s\n", (char*)value);
+        if(tree->destroy_value_fn != NULL && node->value != NULL){
+            tree->destroy_value_fn(node->value);
+        }
+
+        if(tree->destroy_key_fn != NULL && node->key != NULL){
+            tree->destroy_key_fn(node->key);
+        }
+        
+        node->key = key;
+        node->value = value;
     }
     return node;
 }
@@ -117,7 +130,7 @@ Node *_add_recursive(Node *node, Node *parent, key_type key, value_type value, c
 // Add a new node to the tree
 void binary_tree_add(BinaryTree *tree, key_type key, value_type value)
 {
-    tree->root = _add_recursive(tree->root, NULL, key, value, tree->cmp_fn);
+    tree->root = _add_recursive(tree, tree->root, NULL, key, value);
 }
 
 Node *_get_recursive(Node *node, key_type key, cmp_func cmp_fn)
