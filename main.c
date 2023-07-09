@@ -3,18 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Celula{
-    int lin;
-    int col;
-}Celula;
+typedef struct Pessoa{
+    char nome[100];
+    int idade;
+    float altura;
+}Pessoa;
 
 
 int cmp_fn(key_type a, key_type b)
 {
-    if(((Celula *)a)->lin == ((Celula *)b)->lin){
-        return ((Celula *)a)->col - ((Celula *)b)->col;
-    }
-    return ((Celula *)a)->lin - ((Celula *)b)->lin;
+    return strcmp((char *)a, (char *)b);
 }
 
 void destroy_key_fn(key_type key)
@@ -38,22 +36,80 @@ int main(){
         char fn[10];
         scanf("%s%*c", fn);
         if(strcmp(fn, "SET") == 0){
-            Celula *cel = (Celula *)malloc(sizeof(Celula));
-            int *val = (int *)malloc(sizeof(int));
-            scanf("%d%*c%d%*c%d%*c", &cel->lin, &cel->col, val);
-            binary_tree_add(tree, cel, val);
+            Pessoa *p = (Pessoa *)malloc(sizeof(Pessoa));
+            scanf("%s%*c%d%*c%f%*c", p->nome, &p->idade, &p->altura);
+            binary_tree_add(tree, strdup(p->nome), p);
         }else if(strcmp(fn, "GET") == 0){
-            Celula cel;
-            scanf("%d%*c%d%*c", &cel.lin, &cel.col);
-            Pair *p = binary_tree_get(tree, &cel);
-            
-            if(p!=NULL){
-                printf("%d\n", *(int *)p->value);
+            char key[12];
+            scanf("%s%*c", key);
+            Pair *p = binary_tree_get(tree, key);
+            if(p != NULL){
+                Pessoa *pessoa = (Pessoa *)p->value;
+                printf("%s %d %.2f\n", pessoa->nome, pessoa->idade, pessoa->altura);
                 free(p);
+            }
+        }else if(strcmp(fn, "POP") == 0){
+            char key[12];
+            scanf("%s%*c", key);
+            Pair * p = binary_tree_remove(tree, key);
+            if(p != NULL){
+                destroy_key_fn(p->key);
+                destroy_value_fn(p->value);
+                free(p);
+            }else{
+                printf("CHAVE INEXISTENTE\n");
+            }
+
+        }else if(strcmp(fn, "MAX") == 0){
+            Pair * p = binary_tree_max(tree);
+            if(p != NULL){
+                Pessoa *pessoa = (Pessoa *)p->value;
+                printf("%s %d %.2f\n", pessoa->nome, pessoa->idade, pessoa->altura);
+                free(p);
+            }
+        }else if(strcmp(fn, "MIN") == 0){
+            Pair * p = binary_tree_min(tree);
+            if(p != NULL){
+                Pessoa *pessoa = (Pessoa*)p->value;
+                printf("%s %d %.2f\n", pessoa->nome, pessoa->idade, pessoa->altura);
+                free(p);
+            }
+        }else if(strcmp(fn, "POP_MAX") == 0){
+            Pair *p = binary_tree_pop_max(tree);
+            if(p != NULL){
+                Pessoa *pessoa = (Pessoa*)p->value;
+                printf("%s %d %.2f\n", pessoa->nome, pessoa->idade, pessoa->altura);
+                destroy_key_fn(p->key);
+                destroy_value_fn(p->value);
+                free(p);
+            }else{
+                printf("ARVORE VAZIA\n");
+            }
+        }else if(strcmp(fn, "POP_MIN") == 0){
+            Pair *p = binary_tree_pop_min(tree);
+            if(p != NULL){
+                Pessoa *pessoa = (Pessoa*)p->value;
+                printf("%s %d %.2f\n", pessoa->nome, pessoa->idade, pessoa->altura);
+                destroy_key_fn(p->key);
+                destroy_value_fn(p->value);
+                free(p);
+            }else{
+                printf("ARVORE VAZIA\n");
             }
         }
     }
 
+    Vector *v = postorder_traversal_recursive(tree);
+
+    for(int i = 0; i < vector_size(v) ;i++){
+        Pair *p = (Pair *)vector_get(v, i);
+        if(p != NULL){
+            Pessoa *pessoa = (Pessoa*)p->value;
+            printf("%s %d %.2f\n", pessoa->nome, pessoa->idade, pessoa->altura);
+            free(p);
+        }
+    }    
+    vector_destroy(v);
     binary_tree_destroy(tree);
 
     return 0;

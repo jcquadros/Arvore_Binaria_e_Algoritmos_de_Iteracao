@@ -289,6 +289,10 @@ Pair *binary_tree_remove(BinaryTree *tree, key_type key)
 
 Pair *binary_tree_pop_min(BinaryTree *tree)
 {
+    if(tree->root == NULL)
+    {
+        return NULL;
+    }
     Node *node = _get_min(tree->root);
     if (node == NULL)
     {
@@ -306,6 +310,10 @@ Pair *binary_tree_pop_min(BinaryTree *tree)
 
 Pair *binary_tree_pop_max(BinaryTree *tree)
 {
+    if(tree->root == NULL)
+    {
+        return NULL;
+    }
     Node *node = _get_max(tree->root);
     if (node == NULL)
     {
