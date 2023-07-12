@@ -28,6 +28,7 @@ void destroy_value_fn(value_type value)
 
 int main(){
 
+
     int n;
     scanf("%d%*c", &n);
 
